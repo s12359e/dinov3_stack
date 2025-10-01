@@ -161,6 +161,7 @@ VALID_ANNOT = config['VALID_ANNOT']
 CLASSES = config['CLASSES']
 NUM_CLASSES = len(CLASSES)
 VISUALIZE_TRANSFORMED_IMAGES = config['VISUALIZE_TRANSFORMED_IMAGES']
+ANNOT_FORMAT = config.get('ANNOT_FORMAT', 'pascal_voc')
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -236,9 +237,11 @@ if __name__ == '__main__':
     os.makedirs(OUT_DIR, exist_ok=True)
     train_dataset = create_train_dataset(
         TRAIN_IMG, TRAIN_ANNOT, CLASSES, args.imgsz,
+        annotation_format=ANNOT_FORMAT
     )
     valid_dataset = create_valid_dataset(
-        VALID_IMG, VALID_ANNOT, CLASSES, args.imgsz
+        VALID_IMG, VALID_ANNOT, CLASSES, args.imgsz,
+        annotation_format=ANNOT_FORMAT
     )
     train_loader = create_train_loader(
         train_dataset=train_dataset, 

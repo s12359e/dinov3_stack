@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 
 from torchinfo import summary
+from transformers import AutoConfig, AutoModel
 
 model_feature_layers = {
     'dinov3_vits16': [3, 5, 7, 11],
@@ -14,22 +15,18 @@ model_feature_layers = {
 
 
 def load_model(weights: str=None, model_name: str=None, repo_dir: str=None):
+    """Load a backbone using Hugging Face transformers AutoModel."""
+
     if weights is not None:
-        print('Loading pretrained backbone weights from: ', weights)
-        model = torch.hub.load(
-            repo_dir, 
-            model_name, 
-            source='local', 
-            weights=weights
-        )
+        print('Loading pretrained backbone weights from Hugging Face: ', weights)
+        model = AutoModel.from_pretrained(weights, trust_remote_code=True)
     else:
-        print('No pretrained weights path given. Loading with random weights.')
-        model = torch.hub.load(
-            repo_dir, 
-            model_name, 
-            source='local'
-        )
-    
+        if model_name is None:
+            raise ValueError('Either `weights` or `model_name` must be provided.')
+        print('No pretrained weights path given. Initializing from config: ', model_name)
+        config = AutoConfig.from_pretrained(model_name, trust_remote_code=True)
+        model = AutoModel.from_config(config)
+
     return model
 
 class SimpleDecoder(nn.Module):
@@ -103,12 +100,8 @@ class Dinov3Segmentation(nn.Module):
 if __name__ == '__main__':
     from PIL import Image
     from torchvision import transforms
-    from src.utils.common import get_dinov3_paths
 
     import numpy as np
-    import os
-
-    DINOV3_REPO, DINOV3_WEIGHTS = get_dinov3_paths()
 
     input_size = 640
 
@@ -125,20 +118,15 @@ if __name__ == '__main__':
         )
     ])
 
-    model_names = {
-        'dinov3_vits16': 'dinov3_vits16_pretrain_lvd1689m-08c60483.pth',
-        'dinov3_vits16plus': 'dinov3_vits16plus_pretrain_lvd1689m-4057cbaa.pth',
-        'dinov3_vitb16': 'dinov3_vitb16_pretrain_lvd1689m-73cec8be.pth',
-        'dinov3_vitl16': 'dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth',
-        'dinov3_vith16plus': 'dinov3_vith16plus_pretrain_lvd1689m-7c1da9a5.pth',
-        # 'dinov3_vit7b16': [11, 16, 21, 31]
-    }
+    model_names = [
+        'facebook/dinov2-small',
+        'facebook/dinov2-base',
+    ]
 
     for model_name in model_names:
         print('Testing: ', model_name)
         model = Dinov3Segmentation(
-            repo_dir=DINOV3_REPO, 
-            weights=os.path.join(DINOV3_WEIGHTS, model_names[model_name]),
+            weights=model_name,
             model_name=model_name,
             feature_extractor='multi' # OR 'last'
         )

@@ -144,6 +144,8 @@ Check the `detection_configs` directory to know more about setting up the config
 
 Check [this dataset on Kaggle](https://www.kaggle.com/datasets/sovitrath/voc-07-12) to know how the images and masks are structured.
 
+*New:* the detection configuration files accept an `ANNOT_FORMAT` key that controls how bounding boxes are read. Set it to `pascal_voc` (default) for XML annotations or to `yolo_txt` when working with YOLO formatted `.txt` label files. Point the `TRAIN_ANNOT` and `VALID_ANNOT` paths to the corresponding annotation directories.
+
 [Check this](https://github.com/facebookresearch/dinov3?tab=readme-ov-file#pretrained-backbones-via-pytorch-hub) to know all the `--model-name` values that can be passed (e.g. `dinov3_vits16`, etc.).
 
 The training pipeline supports building detection head with SSD and RetinaNet. RetinaNet is default is gives much better results.

@@ -21,3 +21,6 @@ CLASSES: [
 
 # Whether to visualize images after crearing the data loaders.
 VISUALIZE_TRANSFORMED_IMAGES: false
+
+# Annotation format. Supported values: pascal_voc, yolo_txt.
+ANNOT_FORMAT: pascal_voc

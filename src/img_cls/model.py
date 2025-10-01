@@ -5,23 +5,21 @@ Building a linear classifier on top of DINOv3 backbone.
 import torch
 import torch.nn as nn
 
+from transformers import AutoConfig, AutoModel
+
 def load_model(weights: str=None, model_name: str=None, repo_dir: str=None):
+    """Load a backbone using Hugging Face transformers AutoModel."""
+
     if weights is not None:
-        print('Loading pretrained backbone weights from: ', weights)
-        model = torch.hub.load(
-            repo_dir, 
-            model_name, 
-            source='local', 
-            weights=weights
-        )
+        print('Loading pretrained backbone weights from Hugging Face: ', weights)
+        model = AutoModel.from_pretrained(weights, trust_remote_code=True)
     else:
-        print('No pretrained weights path given. Loading with random weights.')
-        model = torch.hub.load(
-            repo_dir, 
-            model_name, 
-            source='local'
-        )
-    
+        if model_name is None:
+            raise ValueError('Either `weights` or `model_name` must be provided.')
+        print('No pretrained weights path given. Initializing from config: ', model_name)
+        config = AutoConfig.from_pretrained(model_name, trust_remote_code=True)
+        model = AutoModel.from_config(config)
+
     return model
 
 # def build_model(
@@ -85,12 +83,8 @@ if __name__ == '__main__':
     from PIL import Image
     from torchvision import transforms
     from torchinfo import summary
-    from src.utils.common import get_dinov3_paths
 
     import numpy as np
-    import os
-
-    DINOV3_REPO, DINOV3_WEIGHTS = get_dinov3_paths()
 
     sample_size = 224
 
@@ -109,11 +103,7 @@ if __name__ == '__main__':
     ])
 
     # Loading the pretrained model without classification head.
-    model = load_model(
-        repo_dir=DINOV3_REPO, 
-        weights=os.path.join(DINOV3_WEIGHTS, 'dinov3_vits16_pretrain_lvd1689m-08c60483.pth'),
-        model_name='dinov3_vits16'
-    )
+    model = load_model(weights='facebook/dinov2-base')
 
     # Total parameters and trainable parameters.
     total_params = sum(p.numel() for p in model.parameters())
@@ -146,9 +136,8 @@ if __name__ == '__main__':
     print(model)
 
     model_cls = Dinov3Classification(
-        repo_dir=DINOV3_REPO, 
-        weights=os.path.join(DINOV3_WEIGHTS, 'dinov3_vits16_pretrain_lvd1689m-08c60483.pth'),
-        model_name='dinov3_vits16'
+        weights='facebook/dinov2-base',
+        model_name='facebook/dinov2-base'
     )
 
     summary(
